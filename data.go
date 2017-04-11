@@ -18,12 +18,12 @@ twfGD10iVAWDq3yt28m+VYd2uD3xROV5m95IfeppqSokznlJDd7pjFp0jzE7BX1E
 	readmeNetFilename = "README.doc"
 
 	//	运行时的提示信息
-	alert = []byte(`Hey guys, why not care?`)
+	alert = []byte(`plus one second`)
 
 	//	自定义文件后缀名
-	filesuffix = ".eduransom"
+	filesuffix = ".jiaonizuoren"
 
 	//	key与dkey文件名的设置
-	keyFilename  = "YourRansom.key"
-	dkeyFilename = "YourRansom.dkey"
+	keyFilename  = "ShitRansom.key"
+	dkeyFilename = "ShitRansom.dkey"
 )
