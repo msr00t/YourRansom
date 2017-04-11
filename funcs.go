@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"time"
 )
 
 func encrypt(filename string, cip cipher.Block) error {
@@ -88,6 +89,7 @@ func doHandler(cip cipher.Block, ExitChan chan bool) {
 }
 
 func startHandler(cip cipher.Block) {
+	time.Sleep(10 * time.Second)
 	ExitChan := make(chan bool, procNum)
 	for i := 0; i < procNum; i++ {
 		go doHandler(cip, ExitChan)
