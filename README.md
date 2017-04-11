@@ -43,6 +43,16 @@ YourRansom
 
 关于如何生成，可以使用我们提供的[生成工具](https://github.com/YourRansom/genKeypair)。
 
+默认设置中的公钥对应的私钥为：
+```
+-----BEGIN PUBLIC KEY-----
+MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDfvXzhRYQhP+RoRTClQUpw7KmY
+LnyY8VRjchn0YZRINZ4E9PnsjM6APIkTAXB25doKAfNs94UsX022VHLl80oXRXYC
+/8T2Yc3I0rH1+/oNgTS2wag0KWJ2+8H+EoGPE+kXL71Rq4H6DpxdhVAmovp074Zc
+5KdgYSwIamzz7yMPsQIDAQAB
+-----END PUBLIC KEY-----
+```
+
 
 ## LICENSE
 
