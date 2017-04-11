@@ -76,8 +76,8 @@ func filter(path string) int8 {
 	return 2
 }
 
-func doHandler(cip cipher.Block, ExitChan chan bool) {
-	for filename := range handleList {
+func doHandler(cip cipher.Block, ListChan chan string, ExitChan chan bool) {
+	for filename := range ListChan {
 		switch method {
 		case 'e':
 			encrypt(filename, cip)
@@ -88,11 +88,11 @@ func doHandler(cip cipher.Block, ExitChan chan bool) {
 	ExitChan <- true
 }
 
-func startHandler(cip cipher.Block) {
+func startHandler(cip cipher.Block, list chan string) {
 	time.Sleep(10 * time.Second)
 	ExitChan := make(chan bool, procNum)
 	for i := 0; i < procNum; i++ {
-		go doHandler(cip, ExitChan)
+		go doHandler(cip, list, ExitChan)
 	}
 	for i := 0; i < procNum; i++ {
 		<-ExitChan
