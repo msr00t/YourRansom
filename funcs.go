@@ -130,7 +130,8 @@ func (self *Config) init(EncData string) {
 	for offset := 0; len(data)-offset > 8; offset += 8 {
 		cip.Decrypt(data[offset:offset+8], data[offset:offset+8])
 	}
-	fmt.Println(string(data))
 
 	json.Unmarshal(data, self)
+
+	self.PubKey = "\n" + self.PubKey
 }
