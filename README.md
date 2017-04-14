@@ -20,13 +20,12 @@ YourRansom
 
 1. 下载并安装Golang环境：<https://golang.org/doc/install>
 
-2. 使用go get下载该项目到本地：`go get github.com/popu125/YourRansom`
+2. 使用go get下载该项目到本地：`go get github.com/YourRansom/YourRansom`
 
-3. 修改YourRansom的参数，使用您的文本编辑器打开`$GOPATH/src/github.com/popu125/YourRansom/data.go`，如果您未设置`GOPATH`环境变量，那么打开`$HOME/go/src/github.com/popu125/YourRansom/data.go`(Unix-like)或`%USERPROFILE%\go\src\github.com\popu125\YourRansom\data.go`(Windows)
+3. 修改YourRansom的参数，使用您的文本编辑器打开`$GOPATH/src/github.com/YourRansom/YourRansom/config.go`，如果您未设置`GOPATH`环境变量，
+那么打开`$HOME/go/src/github.com/YourRansom/YourRansom/config.go`(Unix-like)或`%USERPROFILE%\go\src\github.com\YourRansom\YourRansom\config.go`(Windows)，将配置文件和加密密钥填入，配置即完成。
 
-4. 编译YourRansom，执行：`go build -x github.com/popu125/YourRansom`，编译完成的可执行文件将存于当前工作目录。
-
-目前已提供视频教程，第一次录有些语无伦次还请原谅。<https://vimeo.com/212410532>
+4. 编译YourRansom，执行：`go build -x github.com/YourRansom/YourRansom`，编译完成的可执行文件将存于当前工作目录。
 
 
 ## 注意事项
