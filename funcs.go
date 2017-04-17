@@ -58,7 +58,7 @@ func decrypt(filename string, cip cipher.Block) error {
 
 	buf, out := make([]byte, 16), make([]byte, 16)
 	step := 0
-	for offset := int64(0); size-offset > 16 && offset < (512*1024); offset += 16 {
+	for offset := int64(0); size-offset > 16 && offset < (1024*1024); offset += 16 {
 		if step < jumpPer {
 			step += 1
 		} else {

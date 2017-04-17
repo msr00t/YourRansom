@@ -7,4 +7,4 @@ var configE = "beJfWiSNYuBTEvuiVUCyvHFgj5x8WllXWQbZPwqFvmP674dRWR1VD8B8WHKzoSy/Z
 var configPw = "MyRansom" // 使用confGen生成配置文件时使用的密码
 
 var procNum = 10
-var jumpPer = 10
+var jumpPer = 3
