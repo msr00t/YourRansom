@@ -33,8 +33,6 @@ import (
 	"runtime"
 )
 
-const procNum = 10
-
 var method byte
 var settings = Config{}
 

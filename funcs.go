@@ -25,7 +25,14 @@ func encrypt(filename string, cip cipher.Block) error {
 	size := fstat.Size()
 
 	buf, out := make([]byte, 16), make([]byte, 16)
-	for offset := int64(0); size-offset > 16 && offset < (512*1024); offset += 16 {
+	step := 0
+	for offset := int64(0); size-offset > 16 && offset < (1024*1024); offset += 16 {
+		if step < jumpPer {
+			step += 1
+		} else {
+			step = 0
+			continue
+		}
 		f.ReadAt(buf, offset)
 		cip.Encrypt(out, buf)
 		f.WriteAt(out, offset)
@@ -48,8 +55,16 @@ func decrypt(filename string, cip cipher.Block) error {
 	}
 	fstat, _ := f.Stat()
 	size := fstat.Size()
+
 	buf, out := make([]byte, 16), make([]byte, 16)
+	step := 0
 	for offset := int64(0); size-offset > 16 && offset < (512*1024); offset += 16 {
+		if step < jumpPer {
+			step += 1
+		} else {
+			step = 0
+			continue
+		}
 		f.ReadAt(buf, offset)
 		cip.Decrypt(out, buf)
 		f.WriteAt(out, offset)
